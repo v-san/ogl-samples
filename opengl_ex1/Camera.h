@@ -4,10 +4,10 @@
 ///////////////////////
 // Camera class based on samples from learnopengl.com
 
-
 #include "common.h"
-#include <glm/gtc/matrix_transform.hpp>
 
+#include "LiteMath.h"
+using namespace LiteMath;
 
 enum Movement_Direction
 {
@@ -21,10 +21,10 @@ class Camera
 {
 public:
 
-  glm::vec3 pos;
-  glm::vec3 front;
-  glm::vec3 up;
-  glm::vec3 right;
+  float3 pos;
+  float3 front;
+  float3 up;
+  float3 right;
 
   GLfloat yaw;
   GLfloat pitch;
@@ -33,13 +33,13 @@ public:
   GLfloat mouseSensitivity;
   GLfloat zoom;
 
-  Camera(glm::vec3 a_pos = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 a_up = glm::vec3(0.0f, 1.0f, 0.0f),
-    glm::vec3 a_front = glm::vec3(0.0f, 0.0f, -1.0f), GLfloat a_yaw = -90.0f, GLfloat a_pitch = 0.0f,
-    GLfloat a_moveSpeed = 3.0f, GLfloat a_mouseSensitivity = 0.25f, GLfloat a_zoom = 45.0f);
+  Camera(float3 a_pos = float3(0.0f, 0.0f, 0.0f), float3 a_up = float3(0.0f, 1.0f, 0.0f),
+         float3 a_front = float3(0.0f, 0.0f, -1.0f), GLfloat a_yaw = -90.0f, GLfloat a_pitch = 0.0f,
+         GLfloat a_moveSpeed = 3.0f, GLfloat a_mouseSensitivity = 0.1f, GLfloat a_zoom = 45.0f);
 
   virtual ~Camera() {};
 
-  glm::mat4 GetViewMatrix() const;
+  float4x4 GetViewMatrix() const;
 
   void ProcessKeyboard(Movement_Direction dir, GLfloat deltaTime);
   void ProcessMouseMove(GLfloat deltaX, GLfloat deltaY, GLboolean limitPitch = true);
@@ -47,7 +47,7 @@ public:
 
 private:
   void updateCameraVectors();
-  glm::vec3 worldUp;
+  float3 worldUp;
 
 };
 

@@ -7,23 +7,22 @@
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
 #include <random>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
-
-const GLsizei WIDTH = 512, HEIGHT = 512; //размеры окна
-int filling = 0;
-bool keys[1024]; //массив состояний кнопок - нажата/не нажата
-GLfloat lastX = 400, lastY = 300; //исходное положение мыши
-bool firstMouse = true;
+static const GLsizei WIDTH = 512, HEIGHT = 512; //размеры окна
+static int filling = 0;
+static bool keys[1024]; //массив состояний кнопок - нажата/не нажата
+static GLfloat lastX = 400, lastY = 300; //исходное положение мыши
+static bool firstMouse = true;
+static bool g_captureMouse         = true;  // Мышка захвачена нашим приложением или нет?
+static bool g_capturedMouseJustNow = false;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-Camera camera(glm::vec3(0.0f, 5.0f, 30.0f));
+Camera camera(float3(0.0f, 5.0f, 30.0f));
 
 //функция для обработки нажатий на кнопки клавиатуры
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	//std::cout << key << std::endl;
 	switch (key)
@@ -61,30 +60,47 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 }
 
+//функция для обработки клавиш мыши
+void OnMouseButtonClicked(GLFWwindow* window, int button, int action, int mods)
+{
+  if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+    g_captureMouse = !g_captureMouse;
 
-//функция для обработки мыши
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+
+  if (g_captureMouse)
+  {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    g_capturedMouseJustNow = true;
+  }
+  else
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+}
+
+//функция для обработки перемещения мыши
+void OnMouseMove(GLFWwindow* window, double xpos, double ypos)
 {
   if (firstMouse)
   {
-    lastX = xpos;
-    lastY = ypos;
+    lastX = float(xpos);
+    lastY = float(ypos);
     firstMouse = false;
   }
 
-  GLfloat xoffset = xpos - lastX;
-  GLfloat yoffset = lastY - ypos;  
+  GLfloat xoffset = float(xpos) - lastX;
+  GLfloat yoffset = lastY - float(ypos);  
 
-  lastX = xpos;
-  lastY = ypos;
+  lastX = float(xpos);
+  lastY = float(ypos);
 
-  camera.ProcessMouseMove(xoffset, yoffset);
+  if (g_captureMouse)
+    camera.ProcessMouseMove(xoffset, yoffset);
 }
 
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 {
-  camera.ProcessMouseScroll(yoffset);
+  camera.ProcessMouseScroll(GLfloat(yoffset));
 }
 
 void doCameraMovement(Camera &camera, GLfloat deltaTime)
@@ -98,7 +114,6 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
   if (keys[GLFW_KEY_D])
     camera.ProcessKeyboard(RIGHT, deltaTime);
 }
-
 
 
 /**
@@ -122,9 +137,9 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   std::vector<GLfloat> texcoords_vec; //вектор атрибут текстурных координат вершин
   texcoords_vec.reserve(rows * cols * 2);
 
-  std::vector<glm::vec3> normals_vec_tmp(rows * cols, glm::vec3(0.0f, 0.0f, 0.0f)); //временный вектор нормалей, используемый для расчетов
+  std::vector<float3> normals_vec_tmp(rows * cols, float3(0.0f, 0.0f, 0.0f)); //временный вектор нормалей, используемый для расчетов
 
-  std::vector<glm::ivec3> faces; //вектор граней (треугольников), каждая грань - три индекса вершин, её составляющих; используется для удобства расчета нормалей
+  std::vector<int3> faces;         //вектор граней (треугольников), каждая грань - три индекса вершин, её составляющих; используется для удобства расчета нормалей
   faces.reserve(numIndices / 3);
 
   std::vector<GLuint> indices_vec; //вектор индексов вершин для передачи шейдерной программе
@@ -139,7 +154,7 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
       float zz = -size / 2 + z*size / rows;
       // float yy = -1.0f;
       float r = sqrt(xx*xx + zz*zz);
-      float yy = 5 * (r != 0 ? sin(r) / r : 1.0);
+      float yy = 5.0f * (r != 0.0f ? sin(r) / r : 1.0f);
 
       vertices_vec.push_back(xx);
       vertices_vec.push_back(yy);
@@ -185,7 +200,7 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   int currFace = 1;
   for (int i = 0; i < indices_vec.size() - 2; ++i)
   {
-    glm::ivec3 face;
+    int3 face;
 
     int index0 = indices_vec.at(i);
     int index1 = indices_vec.at(i + 1);
@@ -219,22 +234,22 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   for (int i = 0; i < faces.size(); ++i)
   {
     //получаем из вектора вершин координаты каждой из вершин одного треугольника
-    glm::vec3 A(vertices_vec.at(3 * faces.at(i).x + 0), vertices_vec.at(3 * faces.at(i).x + 1), vertices_vec.at(3 * faces.at(i).x + 2));
-    glm::vec3 B(vertices_vec.at(3 * faces.at(i).y + 0), vertices_vec.at(3 * faces.at(i).y + 1), vertices_vec.at(3 * faces.at(i).y + 2));
-    glm::vec3 C(vertices_vec.at(3 * faces.at(i).z + 0), vertices_vec.at(3 * faces.at(i).z + 1), vertices_vec.at(3 * faces.at(i).z + 2));
+    float3 A(vertices_vec.at(3 * faces.at(i).x + 0), vertices_vec.at(3 * faces.at(i).x + 1), vertices_vec.at(3 * faces.at(i).x + 2));
+    float3 B(vertices_vec.at(3 * faces.at(i).y + 0), vertices_vec.at(3 * faces.at(i).y + 1), vertices_vec.at(3 * faces.at(i).y + 2));
+    float3 C(vertices_vec.at(3 * faces.at(i).z + 0), vertices_vec.at(3 * faces.at(i).z + 1), vertices_vec.at(3 * faces.at(i).z + 2));
 
     //получаем векторы для ребер треугольника из каждой из 3-х вершин
-    glm::vec3 edge1A(glm::normalize(B - A));
-    glm::vec3 edge2A(glm::normalize(C - A));
+    float3 edge1A(normalize(B - A));
+    float3 edge2A(normalize(C - A));
 
-    glm::vec3 edge1B(glm::normalize(A - B));
-    glm::vec3 edge2B(glm::normalize(C - B));
+    float3 edge1B(normalize(A - B));
+    float3 edge2B(normalize(C - B));
 
-    glm::vec3 edge1C(glm::normalize(A - C));
-    glm::vec3 edge2C(glm::normalize(B - C));
+    float3 edge1C(normalize(A - C));
+    float3 edge2C(normalize(B - C));
 
     //нормаль к треугольнику - векторное произведение любой пары векторов из одной вершины
-    glm::vec3 face_normal = glm::cross(edge1A, edge2A);
+    float3 face_normal = cross(edge1A, edge2A);
 
     //простой подход: нормаль к вершине = средняя по треугольникам, к которым принадлежит вершина
     normals_vec_tmp.at(faces.at(i).x) += face_normal;
@@ -245,7 +260,7 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   //нормализуем векторы нормалей и записываем их в вектор из GLFloat, который будет передан в шейдерную программу
   for (int i = 0; i < normals_vec_tmp.size(); ++i)
   {
-    glm::vec3 N = glm::normalize(normals_vec_tmp.at(i));
+    float3 N = normalize(normals_vec_tmp.at(i));
 
     normals_vec.push_back(N.x);
     normals_vec.push_back(N.y);
@@ -316,10 +331,8 @@ int initGL()
 	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
 	std::cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
-
   std::cout << "Controls: "<< std::endl;
-  std::cout << "press 1 to release mouse cursor  "<< std::endl;
-  std::cout << "press 2 to capture mouse cursor  " << std::endl;
+  std::cout << "press left mose button to capture/release mouse cursor  "<< std::endl;
   std::cout << "press spacebar to alternate between shaded wireframe and fill display modes" << std::endl;
   std::cout << "press ESC to exit" << std::endl;
 
@@ -349,10 +362,11 @@ int main(int argc, char** argv)
 	glfwMakeContextCurrent(window); 
 
 	//регистрируем коллбеки для обработки сообщений от пользователя - клавиатура, мышь..
-	glfwSetKeyCallback(window, key_callback);  
-	glfwSetCursorPosCallback(window, mouse_callback); 
-	glfwSetScrollCallback(window, scroll_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+	glfwSetKeyCallback        (window, OnKeyboardPressed);  
+	glfwSetCursorPosCallback  (window, OnMouseMove); 
+  glfwSetMouseButtonCallback(window, OnMouseButtonClicked);
+	glfwSetScrollCallback     (window, OnMouseScroll);
+	glfwSetInputMode          (window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
 
 	if(initGL() != 0) 
 		return -1;
@@ -365,7 +379,7 @@ int main(int argc, char** argv)
 	//создание шейдерной программы из двух файлов с исходниками шейдеров
 	//используется класс-обертка ShaderProgram
 	std::unordered_map<GLenum, std::string> shaders;
-	shaders[GL_VERTEX_SHADER] = "vertex.glsl";
+	shaders[GL_VERTEX_SHADER]   = "vertex.glsl";
 	shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
 	ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
@@ -378,9 +392,6 @@ int main(int argc, char** argv)
   glViewport(0, 0, WIDTH, HEIGHT);  GL_CHECK_ERRORS;
   glEnable(GL_DEPTH_TEST);  GL_CHECK_ERRORS;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glm::mat4 view = camera.GetViewMatrix();
-  glm::mat4 projection = glm::perspective(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
 
 	//цикл обработки сообщений и отрисовки сцены каждый кадр
 	while (!glfwWindowShouldClose(window))
@@ -400,18 +411,18 @@ int main(int argc, char** argv)
     program.StartUseShader(); GL_CHECK_ERRORS;
 
 		//обновляем матрицы камеры и проекции каждый кадр
-    view = camera.GetViewMatrix();
-    projection = glm::perspective(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
+    float4x4 view       = camera.GetViewMatrix();
+    float4x4 projection = projectionMatrixTransposed(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
 
-		//модельная матрица, определяющая положение объекта в мировом пространстве
-		glm::mat4 model = glm::mat4(1.0f); //начинаем с единичной матрицы
+		                //модельная матрица, определяющая положение объекта в мировом пространстве
+		float4x4 model; //начинаем с единичной матрицы
 		
     program.StartUseShader();
 
     //загружаем uniform-переменные в шейдерную программу (одинаковые для всех параллельно запускаемых копий шейдера)
-    program.SetUniform("view", view); GL_CHECK_ERRORS;
+    program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     program.SetUniform("projection", projection); GL_CHECK_ERRORS;
-    program.SetUniform("model", model);
+    program.SetUniform("model",      model);
 
     //рисуем плоскость
     glBindVertexArray(vaoTriStrip);

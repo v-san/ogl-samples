@@ -16,7 +16,7 @@
 #define GL_CHECK_ERRORS ThrowExceptionOnGLError(__LINE__,__FILE__);
 
 
-#define PI 3.1415926535897932384626433832795f
+//#define PI 3.1415926535897932384626433832795f
 
 
 static void ThrowExceptionOnGLError(int line, const char *file)

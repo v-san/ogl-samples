@@ -1,19 +1,19 @@
 #include "Camera.h"
 #include <glm/glm.hpp>
 
-Camera::Camera(glm::vec3 a_pos, glm::vec3 a_up, glm::vec3 a_front, GLfloat a_yaw, GLfloat a_pitch,
-  GLfloat a_moveSpeed, GLfloat a_mouseSensitivity, GLfloat a_zoom) : pos(a_pos), front(a_front), up(a_up),
-  yaw(a_yaw), pitch(a_pitch), moveSpeed(a_moveSpeed), mouseSensitivity(a_mouseSensitivity), zoom(a_zoom)
+Camera::Camera(float3 a_pos, float3 a_up, float3 a_front, GLfloat a_yaw, GLfloat a_pitch,
+               GLfloat a_moveSpeed, GLfloat a_mouseSensitivity, GLfloat a_zoom) : pos(a_pos), front(a_front), up(a_up),
+               yaw(a_yaw), pitch(a_pitch), moveSpeed(a_moveSpeed), mouseSensitivity(a_mouseSensitivity), zoom(a_zoom)
 {
-  right = glm::normalize(glm::cross(a_up, a_front));
+  right   = normalize(cross(a_up, a_front));
   worldUp = up;
 }
 
 
 
-glm::mat4 Camera::GetViewMatrix() const
+float4x4 Camera::GetViewMatrix() const
 {
-  return glm::lookAt(pos, pos + front, up);
+  return lookAtTransposed(pos, pos + front, up);
 }
 
 void Camera::ProcessKeyboard(Movement_Direction dir, GLfloat deltaTime)
@@ -62,14 +62,13 @@ void Camera::ProcessMouseScroll(GLfloat deltaY)
 
 void Camera::updateCameraVectors()
 {
-  glm::vec3 tmpFront;
+  float3 tmpFront;
 
-  tmpFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  tmpFront.y = sin(glm::radians(pitch));
-  tmpFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+  tmpFront.x = cos(DEG_TO_RAD*yaw) * cos(DEG_TO_RAD*pitch);
+  tmpFront.y = sin(DEG_TO_RAD*pitch);
+  tmpFront.z = sin(DEG_TO_RAD*yaw) * cos(DEG_TO_RAD*pitch);
 
-  front = glm::normalize(tmpFront);
-
-  right = glm::normalize(glm::cross(front, worldUp));
-  up = glm::normalize(glm::cross(right, front));
+  front = normalize(tmpFront);
+  right = normalize(cross(front, worldUp));
+  up    = normalize(cross(right, front));
 }

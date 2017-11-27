@@ -2,10 +2,10 @@
 #define SHADERPROGRAM_H
 
 #include <unordered_map>
-
 #include "common.h"
-#include <glm/gtc/type_ptr.hpp>
 
+#include "LiteMath.h"
+using namespace LiteMath;
 
 class ShaderProgram
 {
@@ -28,7 +28,7 @@ public:
 
   bool reLink();
 
-  void SetUniform(const std::string &location, const glm::mat4 &value) const;
+  void SetUniform(const std::string &location, const float4x4 &value) const;
 
   void SetUniform(const std::string &location, float value) const;
 
@@ -38,13 +38,11 @@ public:
 
   void SetUniform(const std::string &location, unsigned int value) const;
 
-  void SetUniform(const std::string &location, const glm::vec4 &value) const;
+  void SetUniform(const std::string &location, const float4 &value) const;
 
-  void SetUniform(const std::string &location, const glm::vec3 &value) const;
+  void SetUniform(const std::string &location, const float3 &value) const;
 
-  void SetUniform(const std::string &location, const glm::vec2 &value) const;
-
-  void SetUniform(const std::string &location, const glm::ivec2 &value) const;
+  void SetUniform(const std::string &location, const float2 &value) const;
 
 private:
   static GLuint LoadShaderObject(GLenum type, const std::string &filename);
