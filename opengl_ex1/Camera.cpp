@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include <glm/glm.hpp>
 
 Camera::Camera(float3 a_pos, float3 a_up, float3 a_front, GLfloat a_yaw, GLfloat a_pitch,
                GLfloat a_moveSpeed, GLfloat a_mouseSensitivity, GLfloat a_zoom) : pos(a_pos), front(a_front), up(a_up),

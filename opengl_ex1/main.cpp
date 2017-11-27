@@ -332,7 +332,7 @@ int initGL()
 	std::cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
   std::cout << "Controls: "<< std::endl;
-  std::cout << "press left mose button to capture/release mouse cursor  "<< std::endl;
+  std::cout << "press right mouse button to capture/release mouse cursor  "<< std::endl;
   std::cout << "press spacebar to alternate between shaded wireframe and fill display modes" << std::endl;
   std::cout << "press ESC to exit" << std::endl;
 
