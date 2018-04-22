@@ -27,7 +27,6 @@ if(WIN32)
 else()
   list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 	find_package(glfw3 REQUIRED)
-  find_package(GLM REQUIRED)
 endif()
 
 include_directories(${ADDITIONAL_INCLUDE_DIRS})
