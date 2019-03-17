@@ -7,7 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <random>
 
-static const GLsizei WIDTH = 512, HEIGHT = 512; //размеры окна
+static const GLsizei WIDTH = 640, HEIGHT = 480; //размеры окна
 
 int initGL()
 {
@@ -100,18 +100,13 @@ int main(int argc, char** argv)
 	{
 		glfwPollEvents();
 
-		//очищаем экран каждый кадр
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);               GL_CHECK_ERRORS;
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_CHECK_ERRORS;
-
-    program.StartUseShader();                           GL_CHECK_ERRORS;
-
-
     // очистка и заполнение экрана цветом
     //
     glViewport  (0, 0, WIDTH, HEIGHT);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear     (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    glUseProgram(program.programObj); // StartUseShader
 
     // draw call
     //
@@ -119,7 +114,7 @@ int main(int argc, char** argv)
     glDrawArrays(GL_TRIANGLES, 0, 3);       GL_CHECK_ERRORS;  // The last parameter of glDrawArrays is equal to VS invocations
     
 
-    program.StopUseShader();
+    glUseProgram(0);                  // StopUseShader
 
 		glfwSwapBuffers(window); 
 	}

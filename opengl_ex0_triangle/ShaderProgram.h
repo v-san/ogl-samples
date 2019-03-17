@@ -9,7 +9,7 @@ class ShaderProgram
 {
 public:
 
-  ShaderProgram() : shaderProgram(-1) {};
+  ShaderProgram() : programObj(-1) {};
 
   ShaderProgram(const std::unordered_map<GLenum, std::string> &inputShaders);
 
@@ -21,7 +21,7 @@ public:
 
   virtual void StopUseShader() const;
 
-  GLuint GetProgram() const { return shaderProgram; }
+  GLuint GetProgram() const { return programObj; }
 
 
   bool reLink();
@@ -34,10 +34,10 @@ public:
 
   void SetUniform(const std::string &location, unsigned int value) const;
 
+  GLuint programObj;
+
 private:
   static GLuint LoadShaderObject(GLenum type, const std::string &filename);
-
-  GLuint shaderProgram;
   std::unordered_map<GLenum, GLuint> shaderObjects;
 };
 

@@ -3,54 +3,54 @@
 ShaderProgram::ShaderProgram(const std::unordered_map<GLenum, std::string> &inputShaders)
 {
 
-  shaderProgram = glCreateProgram();
+  programObj = glCreateProgram();
 
   if (inputShaders.find(GL_VERTEX_SHADER) != inputShaders.end())
   {
     shaderObjects[GL_VERTEX_SHADER] = LoadShaderObject(GL_VERTEX_SHADER, inputShaders.at(GL_VERTEX_SHADER));
-    glAttachShader(shaderProgram, shaderObjects[GL_VERTEX_SHADER]);
+    glAttachShader(programObj, shaderObjects[GL_VERTEX_SHADER]);
   }
 
   if (inputShaders.find(GL_FRAGMENT_SHADER) != inputShaders.end())
   {
     shaderObjects[GL_FRAGMENT_SHADER] = LoadShaderObject(GL_FRAGMENT_SHADER, inputShaders.at(GL_FRAGMENT_SHADER));
-    glAttachShader(shaderProgram, shaderObjects[GL_FRAGMENT_SHADER]);
+    glAttachShader(programObj, shaderObjects[GL_FRAGMENT_SHADER]);
   }
   if (inputShaders.find(GL_GEOMETRY_SHADER) != inputShaders.end())
   {
     shaderObjects[GL_GEOMETRY_SHADER] = LoadShaderObject(GL_GEOMETRY_SHADER, inputShaders.at(GL_GEOMETRY_SHADER));
-    glAttachShader(shaderProgram, shaderObjects[GL_GEOMETRY_SHADER]);
+    glAttachShader(programObj, shaderObjects[GL_GEOMETRY_SHADER]);
   }
   if (inputShaders.find(GL_TESS_CONTROL_SHADER) != inputShaders.end())
   {
     shaderObjects[GL_TESS_CONTROL_SHADER] = LoadShaderObject(GL_TESS_CONTROL_SHADER,
       inputShaders.at(GL_TESS_CONTROL_SHADER));
-    glAttachShader(shaderProgram, shaderObjects[GL_TESS_CONTROL_SHADER]);
+    glAttachShader(programObj, shaderObjects[GL_TESS_CONTROL_SHADER]);
   }
   if (inputShaders.find(GL_TESS_EVALUATION_SHADER) != inputShaders.end())
   {
     shaderObjects[GL_TESS_EVALUATION_SHADER] = LoadShaderObject(GL_TESS_EVALUATION_SHADER,
       inputShaders.at(GL_TESS_EVALUATION_SHADER));
-    glAttachShader(shaderProgram, shaderObjects[GL_TESS_EVALUATION_SHADER]);
+    glAttachShader(programObj, shaderObjects[GL_TESS_EVALUATION_SHADER]);
   }
   if (inputShaders.find(GL_COMPUTE_SHADER) != inputShaders.end())
   {
     shaderObjects[GL_COMPUTE_SHADER] = LoadShaderObject(GL_COMPUTE_SHADER, inputShaders.at(GL_COMPUTE_SHADER));
-    glAttachShader(shaderProgram, shaderObjects[GL_COMPUTE_SHADER]);
+    glAttachShader(programObj, shaderObjects[GL_COMPUTE_SHADER]);
   }
 
-  glLinkProgram(shaderProgram);
+  glLinkProgram(programObj);
 
   GLint linkStatus;
 
 
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linkStatus);
+  glGetProgramiv(programObj, GL_LINK_STATUS, &linkStatus);
   if (linkStatus != GL_TRUE)
   {
     GLchar infoLog[512];
-    glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+    glGetProgramInfoLog(programObj, 512, nullptr, infoLog);
     std::cerr << "Shader program linking failed\n" << infoLog << std::endl;
-    shaderProgram = 0;
+    programObj = 0;
   }
 
 }
@@ -60,61 +60,61 @@ void ShaderProgram::Release()
 {
   if (shaderObjects.find(GL_VERTEX_SHADER) != shaderObjects.end())
   {
-    glDetachShader(shaderProgram, shaderObjects[GL_VERTEX_SHADER]);
+    glDetachShader(programObj, shaderObjects[GL_VERTEX_SHADER]);
     glDeleteShader(shaderObjects[GL_VERTEX_SHADER]);
   }
 
   if (shaderObjects.find(GL_FRAGMENT_SHADER) != shaderObjects.end())
   {
-    glDetachShader(shaderProgram, shaderObjects[GL_FRAGMENT_SHADER]);
+    glDetachShader(programObj, shaderObjects[GL_FRAGMENT_SHADER]);
     glDeleteShader(shaderObjects[GL_FRAGMENT_SHADER]);
   }
 
   if (shaderObjects.find(GL_GEOMETRY_SHADER) != shaderObjects.end())
   {
-    glDetachShader(shaderProgram, shaderObjects[GL_GEOMETRY_SHADER]);
+    glDetachShader(programObj, shaderObjects[GL_GEOMETRY_SHADER]);
     glDeleteShader(shaderObjects[GL_GEOMETRY_SHADER]);
   }
 
   if (shaderObjects.find(GL_TESS_CONTROL_SHADER) != shaderObjects.end())
   {
-    glDetachShader(shaderProgram, shaderObjects[GL_TESS_CONTROL_SHADER]);
+    glDetachShader(programObj, shaderObjects[GL_TESS_CONTROL_SHADER]);
     glDeleteShader(shaderObjects[GL_TESS_CONTROL_SHADER]);
   }
 
   if (shaderObjects.find(GL_TESS_EVALUATION_SHADER) != shaderObjects.end())
   {
-    glDetachShader(shaderProgram, shaderObjects[GL_TESS_EVALUATION_SHADER]);
+    glDetachShader(programObj, shaderObjects[GL_TESS_EVALUATION_SHADER]);
     glDeleteShader(shaderObjects[GL_TESS_EVALUATION_SHADER]);
   }
   if (shaderObjects.find(GL_COMPUTE_SHADER) != shaderObjects.end())
   {
-    glDetachShader(shaderProgram, shaderObjects[GL_COMPUTE_SHADER]);
+    glDetachShader(programObj, shaderObjects[GL_COMPUTE_SHADER]);
     glDeleteShader(shaderObjects[GL_COMPUTE_SHADER]);
   }
 
-  glDeleteProgram(shaderProgram);
+  glDeleteProgram(programObj);
 }
 
 bool ShaderProgram::reLink()
 {
   GLint linked;
 
-  glLinkProgram(shaderProgram);
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &linked);
+  glLinkProgram(programObj);
+  glGetProgramiv(programObj, GL_LINK_STATUS, &linked);
 
   if (!linked)
   {
     GLint logLength, charsWritten;
-    glGetProgramiv(this->shaderProgram, GL_INFO_LOG_LENGTH, &logLength);
+    glGetProgramiv(this->programObj, GL_INFO_LOG_LENGTH, &logLength);
 
     auto log = new char[logLength];
-    glGetProgramInfoLog(this->shaderProgram, logLength, &charsWritten, log);
+    glGetProgramInfoLog(this->programObj, logLength, &charsWritten, log);
 
     std::cerr << "Shader program link error: " << std::endl << log << std::endl;
 
     delete[] log;
-    shaderProgram = 0;
+    programObj = 0;
     return false;
   }
 
@@ -157,7 +157,7 @@ GLuint ShaderProgram::LoadShaderObject(GLenum type, const std::string &filename)
 
 void ShaderProgram::StartUseShader() const
 {
-  glUseProgram(shaderProgram);
+  glUseProgram(programObj);
 }
 
 void ShaderProgram::StopUseShader() const
@@ -167,7 +167,7 @@ void ShaderProgram::StopUseShader() const
 
 void ShaderProgram::SetUniform(const std::string &location, int value) const
 {
-  GLint uniformLocation = glGetUniformLocation(shaderProgram, location.c_str());
+  GLint uniformLocation = glGetUniformLocation(programObj, location.c_str());
   if (uniformLocation == -1)
   {
     std::cerr << "Uniform  " << location << " not found" << std::endl;
@@ -178,7 +178,7 @@ void ShaderProgram::SetUniform(const std::string &location, int value) const
 
 void ShaderProgram::SetUniform(const std::string &location, unsigned int value) const
 {
-  GLint uniformLocation = glGetUniformLocation(shaderProgram, location.c_str());
+  GLint uniformLocation = glGetUniformLocation(programObj, location.c_str());
   if (uniformLocation == -1)
   {
     std::cerr << "Uniform  " << location << " not found" << std::endl;
@@ -189,7 +189,7 @@ void ShaderProgram::SetUniform(const std::string &location, unsigned int value) 
 
 void ShaderProgram::SetUniform(const std::string &location, float value) const
 {
-  GLint uniformLocation = glGetUniformLocation(shaderProgram, location.c_str());
+  GLint uniformLocation = glGetUniformLocation(programObj, location.c_str());
   if (uniformLocation == -1)
   {
     std::cerr << "Uniform  " << location << " not found" << std::endl;
@@ -200,7 +200,7 @@ void ShaderProgram::SetUniform(const std::string &location, float value) const
 
 void ShaderProgram::SetUniform(const std::string &location, double value) const
 {
-  GLint uniformLocation = glGetUniformLocation(shaderProgram, location.c_str());
+  GLint uniformLocation = glGetUniformLocation(programObj, location.c_str());
   if (uniformLocation == -1)
   {
     std::cerr << "Uniform  " << location << " not found" << std::endl;
